@@ -18,15 +18,51 @@ addBox.addEventListener('click', () => {
 });
 
 closeIcon.addEventListener('click', () => {
+    titleTag.value = '';
+    descTag.value = '';
     popupBox.classList.remove('show');
 });
 
 function showNotes() {
-    notes.forEach((note) => {
-        console.log(note);
+    document.querySelectorAll('.note').forEach((note) => note.remove());
+    notes.forEach((note, index) => {
+        let liTag = `
+            <li class="note">
+                <div class="details">
+                    <p>${note.title}</p>
+                    <span>${note.description}</span>
+                </div>
+                <div class="bottom-content">
+                    <span>${note.date}</span>
+                    <div class="settings">
+                        <i onclick="showMenu(this)" class="uil uil-ellipsis-h"></i>
+                        <ul class="menu">
+                            <li><i class="uil uil-pen"></i>Edit</li>
+                            <li onclick="deleteNote(${index})"><i class="uil uil-trash"></i>Delete</li>
+                        </ul>
+                    </div>
+                </div>
+            </li>
+            `;
+        addBox.insertAdjacentHTML('afterend', liTag);
     });
 }
 showNotes();
+
+function showMenu(elem) {
+    elem.parentElement.classList.add('show');
+    document.addEventListener('click', e => {
+        if (e.target.tagName != 'I' || e.target != elem) {
+            elem.parentElement.classList.remove('show');
+        }
+    });
+}
+
+function deleteNote(noteID) {
+    notes.splice(noteID, 1); // remove selected note from notes array
+    localStorage.setItem('notes', JSON.stringify(notes)); // save updated notes to local storage
+    showNotes();
+}
 
 addBtn.addEventListener('click', e => {
     e.preventDefault();
@@ -47,5 +83,6 @@ addBtn.addEventListener('click', e => {
         notes.push(noteInfo); // add new note to notes array
         localStorage.setItem('notes', JSON.stringify(notes)); // store notes array in local storage
         closeIcon.click(); // close popup
+        showNotes();
     }
 });
