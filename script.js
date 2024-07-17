@@ -4,6 +4,7 @@ const closeIcon = popupBox.querySelector('header i');
 const addBtn = popupBox.querySelector('button');
 const titleTag = popupBox.querySelector('input');
 const descTag = popupBox.querySelector('textarea'); // description
+const popupTitle = popupBox.querySelector('header p');
 
 const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 
@@ -12,14 +13,20 @@ const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 
  * Else pass an empty array to notes
  */
 const notes = JSON.parse(localStorage.getItem('notes')  || "[]");
+let isUpdated = false;
+let updateID;
 
 addBox.addEventListener('click', () => {
+    titleTag.focus();
     popupBox.classList.add('show');
 });
 
 closeIcon.addEventListener('click', () => {
+    isUpdated = false;
     titleTag.value = '';
     descTag.value = '';
+    addBtn.innerText = "Add note";
+    popupTitle.innerText = "Add a new note";
     popupBox.classList.remove('show');
 });
 
@@ -37,7 +44,7 @@ function showNotes() {
                     <div class="settings">
                         <i onclick="showMenu(this)" class="uil uil-ellipsis-h"></i>
                         <ul class="menu">
-                            <li><i class="uil uil-pen"></i>Edit</li>
+                            <li onclick="updateNote(${index}, '${note.title}', '${note.description}')"><i class="uil uil-pen"></i>Edit</li>
                             <li onclick="deleteNote(${index})"><i class="uil uil-trash"></i>Delete</li>
                         </ul>
                     </div>
@@ -59,9 +66,24 @@ function showMenu(elem) {
 }
 
 function deleteNote(noteID) {
+    let confirmDel = confirm('Are you sure you want to delete this note?');
+    if (!confirmDel) {
+        return;
+    }
     notes.splice(noteID, 1); // remove selected note from notes array
     localStorage.setItem('notes', JSON.stringify(notes)); // save updated notes to local storage
     showNotes();
+}
+
+function updateNote(noteID, title, desc) {
+    isUpdated = true;
+    updateID = noteID;
+    addBox.click();
+    titleTag.value = title;
+    descTag.value = desc;
+    addBtn.innerText = "Update note";
+    popupTitle.innerText = "Update a note";
+    console.log(noteID, title, desc);
 }
 
 addBtn.addEventListener('click', e => {
@@ -80,7 +102,14 @@ addBtn.addEventListener('click', e => {
             description: noteDesc,
             date: `${month} ${day}, ${year}`
         };
-        notes.push(noteInfo); // add new note to notes array
+
+        if (!isUpdated) {
+            notes.push(noteInfo); // add new note to notes array
+        } else {
+            isUpdated = false;
+            notes[updateID] = noteInfo; // update existing note
+        }
+
         localStorage.setItem('notes', JSON.stringify(notes)); // store notes array in local storage
         closeIcon.click(); // close popup
         showNotes();
